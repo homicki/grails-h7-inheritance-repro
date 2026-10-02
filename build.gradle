@@ -1,0 +1,33 @@
+plugins {
+    id 'groovy'
+}
+
+def hibernate = project.property('hibernate').toString()
+if (!(hibernate in ['5', '7'])) {
+    throw new GradleException("hibernate must be 5 or 7, not ${hibernate}")
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation platform("org.apache.grails:grails-hibernate${hibernate}-bom:${grailsVersion}")
+    testImplementation "org.apache.grails.data:grails-data-hibernate${hibernate}-core"
+    testImplementation 'org.apache.groovy:groovy'
+    testImplementation 'org.apache.groovy:groovy-sql'
+    testImplementation 'org.spockframework:spock-core'
+    testRuntimeOnly 'com.h2database:h2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testRuntimeOnly 'org.slf4j:slf4j-simple'
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+    inputs.property('hibernate', hibernate)
+    systemProperty 'repro.hibernate', hibernate
+    testLogging {
+        events 'passed', 'failed', 'skipped'
+        exceptionFormat 'full'
+    }
+}
